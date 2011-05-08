@@ -1,0 +1,15 @@
+application: feedpacer
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /favicon\.ico
+  static_files: images/favicon.ico
+  upload: favicon\.ico
+  
+- url: .*
+  script: main.py
+  
+builtins:
+- datastore_admin: on

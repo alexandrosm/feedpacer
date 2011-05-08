@@ -1,0 +1,22 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+    <title>feedpacer - {% block title %}{% endblock %}</title>
+	<style>
+		.title{
+			width: 120px;
+			font-size: 17pt;
+			background-color: #FF6622;
+			border-radius: 5px;
+			color: #FFFFFF;
+			padding: 4px;
+		}
+	</style>
+	<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js'></script>
+</head>
+<body>
+    <div class='title' align='center'>feedpacer</div><br/>
+    {% block content %}{% endblock %}
+    {% block footer %}{% endblock %}
+</body>
+</html>

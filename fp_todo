@@ -1,0 +1,110 @@
+Todo:
+	update feeds if user reached the end
+		save id of latest item on add and on update
+			use google Feed API to load newest items on update?
+			
+	Bugs
+		(urllib2) IOError: CRC check failed
+
+	UI/UX
+		Welcome text
+		html5boilerplate
+		Decent logo/template/css
+		feed pagination (or max feeds)
+		input validation
+		Not authorized page
+		progress bars for import
+		add fp footer to feeds
+		new feed page (give link - encourage sharing)
+		open ID and pure sign up
+		create feed without signup?
+		
+	Restfulness
+		Explore proper use of DELETE
+		Give good HTTP errors
+	
+	Optimization
+		Enable appstats - instrument app (Event something-or-other)
+		caching
+			cache feed header
+			ETags?
+		Optimize db access
+		store only bare minimum (if that - maybe only store feed state)
+			use continuations, n, and range headers to get to whichever item with 2 requests.
+			Say you want item 745
+			1. request first 500(?) bytes of feed with n=745-1. 
+			2. extract continuation
+			3. request feed with n=1 and c={{continuation extracted at step 2}}
+			Should give the item you need, faster than requesting and processing 745 items, and using MUCH less bandwidth.
+		speed up import with regex
+		
+	Monetization
+		Paypal Donation?
+		Ads?
+		Flattr?
+	
+	Extra Features
+		Go as far back as you like in a feed
+			figure out last item using range header & urllib2
+				req = urllib2.Request('http://www.python.org/')
+				req.headers['Range'] = 'bytes=%s-%s' % (start, end)
+				f = urllib2.urlopen(req)
+				Basically, request enough to get the continuation, and continue till there is no continuation.
+		Choose which item to start at
+		other ways to pace a feed
+			follow original timing
+			catch up by
+			orthogonal: define starting date/post
+		'Read more' on website? (prelude to adding books)
+
+Done:
+	Bugs
+		Increases the position every time
+	Remove Feeds
+	Modify Feeds
+	Optimization
+		Make caching work
+			Store cached fragments
+			Create initial feed on adding
+	Make templates
+	interval dropdowns, interval as timediff
+	Learn how to break into multiple files
+	Implement read_feed workflow
+		ensure right items get picked up
+		Render feeds well
+		make feed master template
+		Create feed link
+		Extract time since last update
+		Implement check for pointer increment
+	Implement add_feed workflow
+		create and store pointer
+		save feed item id
+		Fetch from google and dump
+		Parse Feed
+			Parse Dates
+		Store to db(waiting for the below)
+		verify if feed has been added to user before
+			query to see if a user has a certain feed
+	Learn how to manage local datastore
+		to clear on a restart:
+			dev_appserver.py --clear_datastore feedpacer/
+	Implement data model
+		Feed
+			Fetched: (?)
+			Title: Slashdot
+			URI {key} http://rss.slashdot.org/Slashdot/slashdot
+			Alternate: href="http://slashdot.org/
+			Updated: 2011-04-29T07:38:23Z			
+		UserFeeds
+			User
+			Feed
+			Interval(hrs)
+			LastUpdated
+		FeedItems
+			FeedName
+			ItemNumber
+			{FeedFields}
+		FeedCache
+			LastUpdated
+
+

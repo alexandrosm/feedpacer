@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{user_nickname}}{% endblock %}
+
+{% block content %}
+<script>
+$(document).ready(function() {
+
+  $.fn.getClassInList = function(list){
+       for(var i = 0; i < list.length; i++)
+       {
+          if($(this).hasClass(list[i]))
+             return list[i];
+       }
+       return "";
+  }
+
+  $('.delete,.put').click(function() {
+    if(confirm('Are you sure?')) {
+      var f = document.createElement('form');
+      $(this).after($(f).attr({
+        method: 'post',
+        action: $(this).attr('href')
+      }).append('<input type="hidden" name="_method" value="' 
+            + $(this).getClassInList(['put', 'delete']).toUpperCase() 
+            + '" />'));
+      $(f).submit();
+    }
+    return false;
+  });
+
+});
+</script>
+
+Welcome, {{user_nickname}}! (<a href="{{logout_url}}">sign out</a>)<br/><br/>
+
+{% if user_feeds %}
+Your Feeds:
+<table border='1'>
+	<tr>
+		<td>#</td>
+		<td>Feed</td>
+		<td>Interval</td>
+		<td>Current Item</td>
+		<td>Updated</td>
+		<td>New Feed</td>
+		<td>Options</td>
+	</tr>
+{% for feed in user_feeds %}
+	<tr>
+		<td>{{forloop.counter}}</td>
+		<td>{{feed.feed.title}}</td>
+		<td>{{feed.interval}}</td>
+		<td>{{feed.currentItem}}</td>
+		<td>{{feed.lastUpdated}}</td>
+		<td><a href="/feeds/{{user_id}}/{{feed.feed.uri}}">subscribe</a></td>
+		<td><a href="/feeds/edit/{{user_id}}/{{feed.feed.uri}}">Edit</a> <a href="/feeds/{{user_id}}/{{feed.feed.uri}}" class="delete">Delete</a></td>
+	</tr>
+{% endfor %}
+</table>
+{% endif %}
+<a href="/feeds/{{user_nickname}}/new">(+)add a new feed</a>
+
+<br/>
+<br/>
+debug: {{debug}}
+{% endblock %}
+

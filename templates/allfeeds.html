@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{{user_nickname}}{% endblock %}
+
+{% block content %}
+
+{% for feed in feeds %}
+{{feed.title}}<br/><br/>
+{% for item in feed.items %}
+{{item.num}}. {{item.title}}<br/>
+{% endfor %}
+<hr><br/>
+{% endfor %}
+{% endblock %}

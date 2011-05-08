@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{user_nickname}}{% endblock %}
+
+{% block content %}
+Add new feed:
+<form method="post">
+	<div>Source <input type="text" name="source"></div>
+	<div>New item every <select name="interval">
+		<option value="30">30 min</option>
+		<option value="60">1 hour</option>
+		<option value="360">6 hours</option>
+		<option value="720">12 hours</option>
+		<option value="1440" selected>1 day</option>
+		<option value="2880">2 days</option>
+		<option value="4320">3 days</option>
+		<option value="7200">5 days</option>
+		<option value="10080">1 week</option>
+	</select></div>
+	<div><input type="submit" value="Add feed"></div>
+</form>
+{% endblock %}

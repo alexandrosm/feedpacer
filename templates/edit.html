@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{user_nickname}}{% endblock %}
+
+{% block content %}
+Edit feed:
+<form method="post">
+	<div>Source: {{user_feed.feed.uri}}
+	<div>New item every <select name="interval">
+		<option value="30" {% ifequal user_feed.interval 30 %} selected {% endifequal %}>30 min</option>
+		<option value="60" {% ifequal user_feed.interval 60 %} selected {% endifequal %}>1 hour</option>
+		<option value="360" {% ifequal user_feed.interval 360 %} selected {% endifequal %}>6 hours</option>
+		<option value="720" {% ifequal user_feed.interval 720 %} selected {% endifequal %}>12 hours</option>
+		<option value="1440" {% ifequal user_feed.interval 1440 %} selected {% endifequal %}>1 day</option>
+		<option value="2880" {% ifequal user_feed.interval 2880 %} selected {% endifequal %}>2 days</option>
+		<option value="4320" {% ifequal user_feed.interval 4320 %} selected {% endifequal %}>3 days</option>
+		<option value="7200" {% ifequal user_feed.interval 7200 %} selected {% endifequal %}>5 days</option>
+		<option value="10080" {% ifequal user_feed.interval 10080 %} selected {% endifequal %}>1 week</option>
+	</select></div>
+	<div><input type="submit" value="Edit feed"></div>
+</form>
+{% endblock %}
