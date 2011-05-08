@@ -2,4 +2,4 @@ feedpacer v0.1
 
 feedpacer allows you to read feeds from the beginning, at your pace. The code is written to work on Google's app engine and the running app can be found at http://feedpacer.appspot.com
 
-feedpaces uses the Unofficial Google Reader API and requires a google login for the moment. The current version is only safe for my own personal use, and more work is required to complete it for public usage.
+feedpacer uses the Unofficial Google Reader API and requires a google login for the moment. The current version is only safe for my own personal use, and more work is required to complete it for public usage.
