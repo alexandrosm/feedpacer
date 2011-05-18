@@ -1,26 +1,24 @@
 Todo:
-	update feeds if user reached the end
-		save id of latest item on add and on update
-			use google Feed API to load newest items on update?
+	google analytics
 			
 	Bugs
-		(urllib2) IOError: CRC check failed
+		Catch - (urllib2) IOError: CRC check failed (retry a number of times before failing gracefully)
 
 	UI/UX
-		Welcome text
 		html5boilerplate
 		Decent logo/template/css
+		
 		feed pagination (or max feeds)
 		input validation
 		Not authorized page
 		progress bars for import
-		add fp footer to feeds
 		new feed page (give link - encourage sharing)
 		open ID and pure sign up
 		create feed without signup?
+		replace usage of usernick with user_id in main.py
 		
 	Restfulness
-		Explore proper use of DELETE
+		Explore proper use of DELETE via JQuery
 		Give good HTTP errors
 	
 	Optimization
@@ -45,19 +43,21 @@ Todo:
 	
 	Extra Features
 		Go as far back as you like in a feed
-			figure out last item using range header & urllib2
-				req = urllib2.Request('http://www.python.org/')
-				req.headers['Range'] = 'bytes=%s-%s' % (start, end)
-				f = urllib2.urlopen(req)
-				Basically, request enough to get the continuation, and continue till there is no continuation.
 		Choose which item to start at
+		Change current item
 		other ways to pace a feed
 			follow original timing
 			catch up by
 			orthogonal: define starting date/post
 		'Read more' on website? (prelude to adding books)
+		add fp footer to feeds
 
 Done:
+	UI/UX
+		Welcome text
+	update feeds if user reached the end
+		save id of latest item on add and on update
+			use google Feed API to load newest items on update?
 	Bugs
 		Increases the position every time
 	Remove Feeds

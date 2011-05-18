@@ -10,6 +10,8 @@ class Feed(db.Model):
 	subtitle = db.StringProperty()
 	alt = db.LinkProperty()
 	updated = db.DateTimeProperty()
+	checkedForUpdates = db.DateTimeProperty()
+	latestItemId = db.StringProperty()
 	totalItems = db.IntegerProperty()
 	idx = db.StringProperty()
 	dir = db.StringProperty()

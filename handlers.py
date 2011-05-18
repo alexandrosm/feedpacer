@@ -22,6 +22,58 @@ def render_template(template_loc, template_values, self):
 	path = os.path.join(os.path.dirname(__file__), 'templates/%s' % (template_loc))
 	self.response.out.write(template.render(path, template_values))
 
+def updateFeed(self, feed):
+	fetchFeedURI = ("http://www.google.com/reader/public/atom/feed/%s?n=1000&client=feedpacer" % feed.uri)
+	try:
+		result = urllib2.urlopen(fetchFeedURI)
+	except urllib2.HTTPError:
+		result = None
+		#eventually push an error.
+		return
+
+	res = result.read()
+	#self.response.out.write("feed retreived<br/>")
+	feedtree = et.XML(res)
+	#self.response.out.write(feedtree.attrib)
+	feed.checkedForUpdates = datetime.now()
+	entries = feedtree.findall('{http://www.w3.org/2005/Atom}entry')
+	latestItemId = entries[0].find('{http://www.w3.org/2005/Atom}id').text
+	#self.response.out.write("%s %s<br/>" % (latestItemId, feed.latestItemId))
+	if feed.latestItemId != latestItemId:
+		#self.response.out.write("getting new items<br/>")
+		#go through entries, add to list till you find 
+		newitems = []
+
+		ns = u'{http://www.w3.org/2005/Atom}'
+		nsl = len(ns)
+		for item in entries:
+			if item.find('{http://www.w3.org/2005/Atom}id').text != feed.latestItemId:
+				feedItem = models.FeedItem()
+				feedItem.feed = feed
+
+				for elem in item.getiterator():
+					if elem.tag.startswith(ns):
+						elem.tag = elem.tag[nsl:]
+				feedItem.whole = "<entry" + et.tostring(item)[100:]
+			
+				newitems.append(feedItem)
+			else:
+				break
+		nextnum = feed.totalItems
+		feed.totalItems += len(newitems)
+		
+		while newitems:
+			#self.response.out.write("adding item<br/>")
+			feedItem = newitems.pop()
+			feedItem.num = nextnum
+			nextnum += 1
+			feedItem.put()
+			
+		feed.latestItemId = latestItemId
+			
+	feed.put()
+	return
+
 class MainHandler(webapp.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
@@ -76,7 +128,7 @@ class NewFeedHandler(webapp.RequestHandler):
 			render_template('add.html', {}, self)
 		else:
 			self.redirect('/')
-			#eventually send to a -not authorized- page			
+			#eventually send to a -not authorized (401)- page			
   	
 	def post(self, usernick):
 		user = users.get_current_user()
@@ -95,7 +147,7 @@ class NewFeedHandler(webapp.RequestHandler):
 				except urllib2.HTTPError:
 					result = None
 					#eventually push an error.
-					self.redirect('/main/%s/' % user.nickname())
+					self.redirect('/')
 				else:
 					res = result.read()
 					feedtree = et.XML(res)
@@ -123,6 +175,8 @@ class NewFeedHandler(webapp.RequestHandler):
 					feed.idx = feedtree.attrib['{urn:atom-extension:indexing}index']
 					feed.dir = feedtree.attrib['{http://www.google.com/schemas/reader/atom/}dir']
 					entries = feedtree.findall('{http://www.w3.org/2005/Atom}entry')
+					feed.latestItemId = entries[0].find('{http://www.w3.org/2005/Atom}id').text
+					feed.checkedForUpdates = datetime.now()
 					feed.totalItems = len(entries)
 					feed.put()
 					
@@ -140,7 +194,7 @@ class NewFeedHandler(webapp.RequestHandler):
 						feedItem.whole = "<entry" + et.tostring(item)[100:]
 						feedItem.put()
 												
-						'''atom_id = item.find('{http://www.w3.org/2005/Atom}id').text
+						'''atom_id = item.find('id').text
 						atom_id = 'tag:feedpacer.appspot.com' + atom_id[14:20] + atom_id[27:]
 						feedItem.atom_id = atom_id
 						
@@ -176,23 +230,23 @@ class NewFeedHandler(webapp.RequestHandler):
 				uf.put()
 				self.redirect('/')
 			else:
-				#pass
 				self.redirect('/')
 				#eventually push an error 'already subscribed'.
 		else:
 			self.redirect('/')
-			#eventually send to a -not authorized- page
+			#self.response.set_status(401)
+			#eventually send to a -not authorized (401)- page
 
-class AllFeedsHandler(webapp.RequestHandler):
-	def get(self):
-		if users.is_current_user_admin():
-			feeds = db.GqlQuery("SELECT * FROM Feed")
-			
-			template_values = {"feeds": feeds}
-			render_template('allfeeds.html', template_values, self)
+class UpdateFeedHandler(webapp.RequestHandler):
+	def get(self, feed_uri):
+		feedset = models.Feed().all().filter('uri = ', urllib2.unquote(feed_uri)).fetch(1)
+		if feedset:
+			feed = feedset[0]
+			updateFeed(self, feed)
+			#self.redirect('/')
 		else:
-			self.redirect('/')
-			#eventually send to a -not authorized- page			
+			self.response.set_status(404)
+			self.response.out.write("(!404) Feed not found (%s)" % urllib2.unquote(feed_uri))
 
 class EditFeedHandler(webapp.RequestHandler):
 	def get(self, user_id, feed_uri):
@@ -209,10 +263,13 @@ class EditFeedHandler(webapp.RequestHandler):
 					template_values = {"user_feed": user_feed}
 					render_template('edit.html', template_values, self)
 				else:
+					self.response.set_status(404)
 					self.response.out.write("User not registered for feed")
 			else:
-				self.response.out.write("Feed not found (%s)" % feed_uri)
+				self.response.set_status(404)
+				self.response.out.write("(404) Feed not found (%s)" % feed_uri)
 		else:
+			self.response.set_status(404)
 			self.response.out.write("User does not exist")
 
 	def post(self, user_id, feed_uri):
@@ -256,13 +313,21 @@ class RenderFeedHandler(webapp.RequestHandler):
 				ufset = models.UserFeed().all().filter('user = ', user).filter('feed = ', feed).fetch(1)
 				if ufset:
 					user_feed = ufset[0]
-
+					
+					#find if it's time to update the feed
 					interval = timedelta(minutes = user_feed.interval)
 					time_since_update = datetime.now() - user_feed.lastUpdated
-					if (time_since_update >= interval) and (user_feed.currentItem < feed.totalItems-1):
+					if time_since_update >= interval:
+						if user_feed.currentItem < feed.totalItems-1:
 							user_feed.currentItem += 1
 							user_feed.lastUpdated = datetime.now()
 							user_feed.put()
+						else:
+							#check if we can add new items to the feed.
+							time_since_last_check = datetime.now() - feed.lastCheckedForUpdates
+							wait_period = timedelta(days = 1)
+							if time_since_last_check > wait_period:
+								updateFeed(self, feed)
 					
 					#find which items should go in the feed
 					feed_items = feed.items.filter('num = ', user_feed.currentItem).fetch(1)
@@ -291,7 +356,7 @@ class RenderFeedHandler(webapp.RequestHandler):
 					ufset = models.UserFeed().all().filter('user = ', user).filter('feed = ', feed).fetch(1)
 					if ufset:
 						ufset[0].delete()						
-						self.redirect('/') #could sent back to user homepage directly - save a request
+						self.redirect('/') #could sent back to user's homepage directly - save a request
 					else:
 						self.response.out.write("User not registered for feed")
 				else:
